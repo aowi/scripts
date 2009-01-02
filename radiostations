@@ -372,12 +372,12 @@ drrock:
   path: http://www.dr.dk/netradio/Metafiler/pls/dr_rock_128.pls
   stream: 128 Kbit/s
 
+# Misc
 animenfo:
   desc: AnimeNfo radio - the best Anime radio
   name: AnimeNfo radio
   path: http://www.animenfo.com/radio/listen.m3u
   stream: 192 Kbit/s MP3
-
 i-a:
   desc: Radiostation of the IRC network immortal-anime
   name: Immortal-Radio
