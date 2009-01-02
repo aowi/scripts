@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+# vim: set expandtab:tabstop=4:shiftwidth=4
 
 # radio 2.0
 # Copyright 2008 Anders Ossowicki
@@ -125,11 +126,11 @@ elsif ( defined $act && $act eq 'playlist' ) {
     my $num = shift;
     $num ||= 10;
     my @list = playlist($num);
-	if (defined $list[0]) {
-		foreach my $s ( reverse @list ) {
-    		print $s->[0], "\n";
-		}
-	}
+    if (defined $list[0]) {
+        foreach my $s ( reverse @list ) {
+            print $s->[0], "\n";
+        }
+    }
     exit;
 }
 elsif ( defined $act && $act eq 'start' ) {
@@ -192,16 +193,16 @@ sub playlist {
     if ( @playlist < $n ) {
         $n = @playlist;
     }
-	return ( reverse @playlist )[ 0 .. ( $n - 1 ) ]
-		if (@playlist); 
-	return undef;
+    return ( reverse @playlist )[ 0 .. ( $n - 1 ) ]
+        if (@playlist); 
+    return undef;
 }
 
 sub np {
-	my @pl = playlist(1);
+    my @pl = playlist(1);
     return $pl[0]->[0]
-		if (@pl);
-	return undef;
+        if (@pl);
+    return undef;
 }
 
 sub info {
@@ -280,15 +281,15 @@ $prog reads ~/.radiostations (a YAML file), fetches the playlist and execs
 mplayer. To get a list of stations in your config, just type $prog.
 
 The following commands are recognised:
-$prog <tag>		plays the station associated with <tag>
-$prog info <tag>	shows information for <tag>
-$prog stop		stops playback
-$prog start		resume playback (if possible)
-$prog status		prints status
-$prog random		start playing a random station from your list
-$prog playlist #	show the last # played tracks. Default is 10
-$prog np		prints the currently playing track, if supported
-$prog			prints a list of stations. -v gives more information
+$prog <tag>     plays the station associated with <tag>
+$prog info <tag>    shows information for <tag>
+$prog stop      stops playback
+$prog start     resume playback (if possible)
+$prog status        prints status
+$prog random        start playing a random station from your list
+$prog playlist #    show the last # played tracks. Default is 10
+$prog np        prints the currently playing track, if supported
+$prog           prints a list of stations. -v gives more information
 
 If you provide your last.fm credentials in the configfile as 'lastfm_user'
 and 'lastfm_passwd', $prog will attempt to submit tracks if the stream
@@ -301,26 +302,26 @@ be in hex:
 lastfm_passwd = md5:117a520adbd19eff51100215aa7a7fbf
 
 Options:
-  -v, --verbose		enable verbose info about stations
-  -t, --colour		colorise output (enabled per default, use --no-colour to
-  			disable)
-  -p, --pidfile		filename where process id should be stored. Will be 
-	  		overwritten if it already exists
-  -s, --statefile	filename where state should be kept. Will be overwritten
-  			if it already exists
-  -r, --stationsfile	filename where radiostations are kept. Will only be read
-  -l, --logfile		filename where mplayer output are kept (used for now 
-			playing information)
-  -c, --configfile	filename where configuration will be read from
-  -f, --lfmfile		file to write last.fm log to. Defaults to /dev/null
-  -h, -?, --help	show this message
+  -v, --verbose     enable verbose info about stations
+  -t, --colour      colorise output (enabled per default, use --no-colour to
+            disable)
+  -p, --pidfile     filename where process id should be stored. Will be 
+            overwritten if it already exists
+  -s, --statefile   filename where state should be kept. Will be overwritten
+            if it already exists
+  -r, --stationsfile    filename where radiostations are kept. Will only be read
+  -l, --logfile     filename where mplayer output are kept (used for now 
+            playing information)
+  -c, --configfile  filename where configuration will be read from
+  -f, --lfmfile     file to write last.fm log to. Defaults to /dev/null
+  -h, -?, --help    show this message
 
 EOH
     exit($sig);
 }
 
 sub lastfm_handshake {
-	my $mult	  = 1;
+    my $mult      = 1;
     my $baseurl   = "http://post.audioscrobbler.com:80/";
     my $proto     = "1.2.1";
     my $client    = "rpl";
@@ -350,44 +351,44 @@ sub lastfm_handshake {
       . $ts . "&a="
       . $token;
     while (1) {
-		my $resp = $ua->get($url);
-    	my ( $sid, $suburl, $npurl );
-	    if ( $resp->is_success ) {
-    	    my @r = split( "\n", $resp->decoded_content );
-        	if ( $r[0] eq "OK" ) {
-	            $sid    = $r[1];
-				$npurl	= $r[2];
-    	        $suburl = $r[3];
-        	    print $sid. "\n" . $npurl . "\n" . $suburl . "\n";
-				return [$sid, $npurl, $suburl];
-	        }
-    	    else {
-        	    print
+        my $resp = $ua->get($url);
+        my ( $sid, $suburl, $npurl );
+        if ( $resp->is_success ) {
+            my @r = split( "\n", $resp->decoded_content );
+            if ( $r[0] eq "OK" ) {
+                $sid    = $r[1];
+                $npurl  = $r[2];
+                $suburl = $r[3];
+                print $sid. "\n" . $npurl . "\n" . $suburl . "\n";
+                return [$sid, $npurl, $suburl];
+            }
+            else {
+                print
 "BADAUTH: Incorrect authentication details. Username or password is wrong\n"
-	              if ( $r[0] eq "BADAUTH" );
-    	        print
+                  if ( $r[0] eq "BADAUTH" );
+                print
 "BANNED: This version of the client was banned. Please upgrade to a newer version\n"
-	              if ( $r[0] eq "BANNED" );
-    	        print "BADTIME: Your system time is too far off the current time\n"
-        	      if ( $r[0] eq "BADTIME" );
-	        	  if ( $r[0] =~ /^FAILED:/ ) {
-				  	print $r[0] . "\n";
-					sleep 60 * $mult;
-					$mult *= 2
-						if ($mult <= 120);
-					next;
-				}
-            	return 0;
-	        }
-	    } else {
-    	    # Handshake failed
-        	print $resp->status_line;
-			sleep 60 * $mult;
-			$mult *= 2
-				if ($mult <= 120);
-			next;
-    	}
-	}
+                  if ( $r[0] eq "BANNED" );
+                print "BADTIME: Your system time is too far off the current time\n"
+                  if ( $r[0] eq "BADTIME" );
+                  if ( $r[0] =~ /^FAILED:/ ) {
+                    print $r[0] . "\n";
+                    sleep 60 * $mult;
+                    $mult *= 2
+                        if ($mult <= 120);
+                    next;
+                }
+                return 0;
+            }
+        } else {
+            # Handshake failed
+            print $resp->status_line;
+            sleep 60 * $mult;
+            $mult *= 2
+                if ($mult <= 120);
+            next;
+        }
+    }
 }
 
 
@@ -395,55 +396,55 @@ sub lastfm_handshake {
 # TODO: Time-limit (30 secs) not honored
 # See http://www.last.fm/api/submissions for details
 sub lastfm {
-	my $hs = lastfm_handshake();
-	unless ($hs) {
-		die "Couldn't complete handshake";
-	}
-	my ($sid, $npurl, $suburl) = @$hs;
+    my $hs = lastfm_handshake();
+    unless ($hs) {
+        die "Couldn't complete handshake";
+    }
+    my ($sid, $npurl, $suburl) = @$hs;
 
     print "Entering loop\n";
     my ( @submitted, $artist, $title );
     my $postdata = {};
     my $errcnt   = 0;
-	my $ua = new LWP::UserAgent;
-	$ua->timeout(10);
+    my $ua = new LWP::UserAgent;
+    $ua->timeout(10);
     while (1) {
         my @plist = reverse (playlist(10));
         my $currsong = pop(@plist);    # The most recent element is the current song
-		if (defined($currsong->[0]) && $currsong->[0]) {
-			my ($cartist, $csong) = split(" - ", $currsong->[0], 2);
-			if (defined $cartist && $cartist && defined $csong && $csong) {
-				$postdata = {
-					s	=> $sid,
-					a	=> $cartist,
-					t	=> $csong,
-					b	=> "",
-					l	=> "",
-					n	=> "",
-					m	=> ""
-				};
-				print "Submitting NP info\n";
+        if (defined($currsong->[0]) && $currsong->[0]) {
+            my ($cartist, $csong) = split(" - ", $currsong->[0], 2);
+            if (defined $cartist && $cartist && defined $csong && $csong) {
+                $postdata = {
+                    s   => $sid,
+                    a   => $cartist,
+                    t   => $csong,
+                    b   => "",
+                    l   => "",
+                    n   => "",
+                    m   => ""
+                };
+                print "Submitting NP info\n";
                 print "Suburl: $npurl\n";
                 print "Postdata:\n";
                 print Dumper($postdata);
 
                 my $resp = $ua->post( $npurl, $postdata );
-				if ( $resp->is_success ) {
-					my $status = ( split( "\n", $resp->decoded_content ) )[0];
-	                if ( $status eq "OK" ) {
-    		        	print "NP info was succesfully submitted\n";
+                if ( $resp->is_success ) {
+                    my $status = ( split( "\n", $resp->decoded_content ) )[0];
+                    if ( $status eq "OK" ) {
+                        print "NP info was succesfully submitted\n";
                     }
                     elsif ( $status eq "BADSESSION" ) {
-						print "Lost handshake. Reassociating...\n";
+                        print "Lost handshake. Reassociating...\n";
                         $hs = lastfm_handshake();
-						die "Couldn't reassociate with last.fm server"
-							unless ($hs);
-						($sid, $npurl, $suburl) = @$hs;
-						print "Done\n";
+                        die "Couldn't reassociate with last.fm server"
+                            unless ($hs);
+                        ($sid, $npurl, $suburl) = @$hs;
+                        print "Done\n";
                     }
-				}
-			}
-		}
+                }
+            }
+        }
  
 
         print "Parsing playlist\n";
@@ -451,14 +452,14 @@ sub lastfm {
             my ( $track, $time ) = @$tdata;
             print "Parsing track $track with time $time\n";
             if ( defined($track) && $track && defined($time) && $time ) {
-				
+                
                 # A completed track and we have a timestamp
                 foreach my $tr (@submitted) {
                     if ( $tr->[0] eq $track && $tr->[1] eq $time ) {
 
                         print "Already submitted $track with time $time\n";
                         next TRACKS;
-					}
+                    }
                     
                 }
 
@@ -479,7 +480,7 @@ sub lastfm {
                         "m[0]" => ""
                     };
                     
-					print "Submitting $track with time $time\n";
+                    print "Submitting $track with time $time\n";
                     print "Suburl: $suburl\n";
                     print "Postdata:\n";
                     print Dumper($postdata);
@@ -494,12 +495,12 @@ sub lastfm {
                             $errcnt = 0;    # Reset error counter
                         }
                         elsif ( $status eq "BADSESSION" ) {
-							print "Lost handshake. Reassociating...\n";
+                            print "Lost handshake. Reassociating...\n";
                             $hs = lastfm_handshake();
-							die "Couldn't reassociate with last.fm server"
-								unless ($hs);
-							($sid, $npurl, $suburl) = @$hs;
-							print "Done\n";
+                            die "Couldn't reassociate with last.fm server"
+                                unless ($hs);
+                            ($sid, $npurl, $suburl) = @$hs;
+                            print "Done\n";
                         }
                         elsif ( $status =~ /^FAILED (.*)$/ ) {
                             print "Error: $1. Track: $track. Time: $time\n";
@@ -528,13 +529,13 @@ sub lastfm {
             }
         }
         if ( $errcnt >= 3 ) {
-			# If three hard failure events occur consecutively, the client 
-			# should fall back to the handshake phase.
+            # If three hard failure events occur consecutively, the client 
+            # should fall back to the handshake phase.
             print "Three strikes and you're out\n";
-			$hs = lastfm_handshake();
-			die "Couldn't reassociate with last.fm server"
-				unless ($hs);
-			($sid, $npurl, $suburl) = @$hs;
+            $hs = lastfm_handshake();
+            die "Couldn't reassociate with last.fm server"
+                unless ($hs);
+            ($sid, $npurl, $suburl) = @$hs;
         }
         sleep 30;
     }
@@ -574,9 +575,9 @@ sub daemonize {
 
     # <Jediwave>You don't see this</Jediwave>
     open (STDOUT, '|-', 'perl', '-nle', qq#
-		BEGIN { open(STDOUT, '>', "$logfile") or die "Can't write to $logfile: \$!"; };
-		print time, ":", \$_;
-		#)
+        BEGIN { open(STDOUT, '>', "$logfile") or die "Can't write to $logfile: \$!"; };
+        print time, ":", \$_;
+        #)
       or die "Can't open pipe: $!";
     open STDERR, '>', '/dev/null' or die "Can't write to /dev/null: $!";
     exec( "mplayer", "-msglevel", "all=-1:demuxer=4", "-playlist",
