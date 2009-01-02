@@ -1,0 +1,584 @@
+#!/usr/bin/perl
+
+# radio 2.0
+# Copyright 2008 Anders Ossowicki
+# Distributed under the terms of the Artistic License 2.0
+# For details see http://www.perlfoundation.org/artistic_license_2_0
+# In short, you are free to copy, modify and redistribute this script
+
+# For usage instructions run this script with --help
+# You will need the following perl modules:
+# * YAML
+# * Digest::MD5
+# * LWP::UserAgent
+# Tested with perl 5.8.8 and mplayer SVN revision 27120
+# mplayer is copyright 2000-2008 MPlayer Team
+
+# Notes:
+# the script will log mplayer output to $logfile. I have tried to suppress
+# most of the unneeded information so the logfile shouldn't grow very much.
+# At any rate, it will be removed whenever you stop playback and truncated
+# if it exists when you start playback.
+
+use strict;
+use warnings;
+use File::Basename;
+use Getopt::Long qw(:config bundling);
+use Term::ANSIColor;
+use YAML qw(LoadFile DumpFile);
+use Digest::MD5;
+use LWP::UserAgent;
+use Data::Dumper;
+
+my $pidfile      = $ENV{'HOME'} . "/.radio.pid";
+my $statefile    = $ENV{'HOME'} . "/.radio.state";
+my $stationsfile = $ENV{'HOME'} . "/.radiostations";
+my $logfile      = $ENV{'HOME'} . "/.radio.log";
+my $configfile   = $ENV{'HOME'} . "/.radio.cfg";
+my $lfmfile      = "/dev/null";
+my $lfm          = {};
+my $v;
+my $colour = 1;
+GetOptions(
+    'verbose|v!'       => \$v,
+    'colour|t!'        => \$colour,
+    'pidfile|p=s'      => \$pidfile,
+    'stationsfile|r=s' => \$stationsfile,
+    'statefile|s=s'    => \$statefile,
+    'logfile|l=s'      => \$logfile,
+    'configfile|c=s'   => \$configfile,
+    'lfmfile|f=s'      => \$lfmfile,
+    'help|h|?'         => sub { usage(0) }
+);
+
+if ( -e $configfile ) {
+    open( my $fh, "<", $configfile ) or die "Can't open config file: $!";
+    while (<$fh>) {
+        chomp;
+        next if (/^(\#.*|)$/);
+        if (/^lastfm_user\s*=\s*(.*)$/i) {
+            $lfm->{user} = $1;
+        }
+        elsif (/^lastfm_passwd\s*=\s*(.*)$/i) {
+            $lfm->{passwd} = $1;
+        }
+        else {
+            print $configfile, ":", $., " Unrecognized line: ", $_, "\n";
+        }
+    }
+    close($fh);
+}
+
+my $stations = LoadFile($stationsfile);
+
+my $act = shift;
+
+if ( defined $act && $act eq 'stop' ) {
+    stop() ? exit 0 : exit 1;
+}
+elsif ( defined $act && $act eq 'status' ) {
+    if ( -e $pidfile ) {
+        my $status = LoadFile($statefile);
+        my $np     = np();
+        print colour( "Now Playing:\t", 'magenta' ), $status->{name}, "\n";
+        printf "%s:\t\t%s\n", colour( "Tag",         'green' ), $status->{tag};
+        printf "%s:\t%s\n",   colour( "Description", 'green' ), $status->{desc};
+        printf "%s:\t\t%s\n", colour( "Path",        'green' ), $status->{path};
+        printf "%s:\t%s\n", colour( "Stream info", 'green' ), $status->{stream};
+        printf "%s:\t%s\n", colour( "Current track", 'green' ), $np if ($np);
+    }
+    else {
+        print "No station playing\n";
+    }
+    exit;
+}
+elsif ( defined $act && $act eq 'info' ) {
+    my $tag = shift;
+    unless ( defined $tag && $tag ) {
+        print "You must specify a tag\n";
+        exit 1;
+    }
+    if ( exists $stations->{ lc($tag) } ) {
+        info($tag);
+        exit 0;
+    }
+    print $tag, " not found\n";
+    exit 1;
+}
+elsif ( defined $act && $act eq 'random' ) {
+    my @tags = keys %$stations;
+    $act = $tags[ int( rand(@tags) ) ];
+    print "Playing $act\n" if ($v);
+}
+elsif ( defined $act && $act eq 'np' ) {
+    my $np = np();
+    if ($np) {
+        print "Now playing: $np\n";
+        exit;
+    }
+    else {
+        print "Unable to find Now Playing information\n";
+        exit 1;
+    }
+}
+elsif ( defined $act && $act eq 'playlist' ) {
+    my $num = shift;
+    $num ||= 10;
+    my @list = playlist($num);
+	if (defined $list[0]) {
+		foreach my $s ( reverse @list ) {
+    		print $s->[0], "\n";
+		}
+	}
+    exit;
+}
+elsif ( defined $act && $act eq 'start' ) {
+    if ( -e $statefile ) {
+        my $old = LoadFile($statefile);
+        $act = $old->{tag};
+    }
+    else {
+        print "No old statefile found. Cannot resume playback\n";
+        exit 1;
+    }
+}
+
+if ( exists $stations->{ lc($act) } ) {
+    if ( -e $pidfile ) {
+
+        # Assume we're already playing, so stop.
+        stop();
+    }
+    DumpFile(
+        $statefile,
+        {
+            tag    => lc($act),
+            name   => $stations->{ lc($act) }->{name},
+            desc   => $stations->{ lc($act) }->{desc},
+            path   => $stations->{ lc($act) }->{path},
+            stream => $stations->{ lc($act) }->{stream}
+        }
+    );
+    daemonize();
+}
+
+# If all else fails, print a list of stations
+listStations();
+
+sub playlist {
+    my $n = shift;
+    open my $log, "<", $logfile or die $!;
+    my $time;
+    my @playlist;
+    while (<$log>) {
+        chomp;    # Om nom nom
+
+        # Ugly, and it probably doesn't catch all formats. Additions welcome
+        if (/StreamTitle/) {
+            if (/^(\d+):/) {
+                $time = $1;
+            }
+            s/^.*StreamTitle='//;
+            s/';StreamUrl.*$//;
+            if ( defined($time) && $time ) {
+                push @playlist, [ $_, $time ];
+            }
+            else {
+                push @playlist, [ $_, "0" ];
+            }
+        }
+    }
+    close($log) or die $!;
+    if ( @playlist < $n ) {
+        $n = @playlist;
+    }
+	return ( reverse @playlist )[ 0 .. ( $n - 1 ) ]
+		if (@playlist); 
+	return undef;
+}
+
+sub np {
+	my @pl = playlist(1);
+    return $pl[0]->[0]
+		if (@pl);
+	return undef;
+}
+
+sub info {
+    my $tag = shift;
+    return 0 unless ( exists $stations->{ lc($tag) } );
+    print colour( $stations->{ lc($tag) }->{name}, 'magenta' ), "\n";
+    printf "%s: %s\n", colour( "Tag", 'green' ), lc($tag);
+    printf "%s: %s\n", colour( "Description", 'green' ),
+      $stations->{ lc($tag) }->{desc};
+    printf "%s: %s\n", colour( "Path", 'green' ),
+      $stations->{ lc($tag) }->{path};
+    printf "%s: %s\n", colour( "Stream info", 'green' ),
+      $stations->{ lc($tag) }->{stream};
+    return 1;
+}
+
+sub stop {
+    if ( -e $pidfile ) {
+        open my $fh, "<", $pidfile or die "Can't open pidfile: $!";
+        while (<$fh>) {    # Om nom nom
+            chomp;
+            if ( -e "/proc/" . $_ ) {
+                kill 15, $_ or die "Can't kill radio: $!";
+            }
+        }
+        close($fh) or die "Can't close pidfile: $!";
+        unlink $pidfile or die "Can't remove pidfile: $!";
+        if ( -f $logfile ) {
+            unlink $logfile or die "Can't remove logfile: $!";
+        }
+        if ( -f $lfmfile ) {
+            unlink $lfmfile or die "Can't remove lfmfile: $!";
+        }
+        return 1;
+    }
+    print "Radio doesn't appear to be running\n";
+    return 0;
+}
+
+sub listStations {
+    print "List of all recognized stations:\n";
+    if ($v) {
+        foreach my $s ( sort keys %$stations ) {
+            info($s);
+            print "\n";
+        }
+    }
+    else {
+
+        # Just print a terse summary of all channels
+        my $l = 0;
+        foreach my $s ( keys %$stations ) {
+            $l = length( colour( $s, 'green' ) )
+              if ( length( colour( $s, 'green' ) ) > $l );
+        }
+        foreach my $s ( sort keys %$stations ) {
+            printf "%${l}s - %s\n", colour( $s, 'green' ),
+              $stations->{$s}->{desc};
+        }
+    }
+}
+
+sub colour {
+    return $_[0] unless ($colour);
+    return colored( $_[0], $_[1] );
+}
+
+sub usage {
+    my $sig  = shift;
+    my $prog = basename($0);
+    print <<EOH;
+Usage: $prog [-cfhlprstv?] <station>
+
+$prog will use mplayer to play your favorite internet radio stations.
+$prog reads ~/.radiostations (a YAML file), fetches the playlist and execs 
+mplayer. To get a list of stations in your config, just type $prog.
+
+The following commands are recognised:
+$prog <tag>		plays the station associated with <tag>
+$prog info <tag>	shows information for <tag>
+$prog stop		stops playback
+$prog start		resume playback (if possible)
+$prog status		prints status
+$prog random		start playing a random station from your list
+$prog playlist #	show the last # played tracks. Default is 10
+$prog np		prints the currently playing track, if supported
+$prog			prints a list of stations. -v gives more information
+
+If you provide your last.fm credentials in the configfile as 'lastfm_user'
+and 'lastfm_passwd', $prog will attempt to submit tracks if the stream
+supports ICY. The config file is a simple key = value file, E.g:
+lastfm_user = arkanoid
+lastfm_passwd = mysupersecretpassword
+
+You can also use md5:<md5sum of your password> instead. The md5 checksum must
+be in hex:
+lastfm_passwd = md5:117a520adbd19eff51100215aa7a7fbf
+
+Options:
+  -v, --verbose		enable verbose info about stations
+  -t, --colour		colorise output (enabled per default, use --no-colour to
+  			disable)
+  -p, --pidfile		filename where process id should be stored. Will be 
+	  		overwritten if it already exists
+  -s, --statefile	filename where state should be kept. Will be overwritten
+  			if it already exists
+  -r, --stationsfile	filename where radiostations are kept. Will only be read
+  -l, --logfile		filename where mplayer output are kept (used for now 
+			playing information)
+  -c, --configfile	filename where configuration will be read from
+  -f, --lfmfile		file to write last.fm log to. Defaults to /dev/null
+  -h, -?, --help	show this message
+
+EOH
+    exit($sig);
+}
+
+sub lastfm_handshake {
+	my $mult	  = 1;
+    my $baseurl   = "http://post.audioscrobbler.com:80/";
+    my $proto     = "1.2.1";
+    my $client    = "rpl";
+    my $clientver = "1.0";
+    my $ts        = time;
+    my $u         = $lfm->{user};
+    my $passwd;
+    if ( $lfm->{passwd} =~ /^md5:(.*)$/i ) {
+        $passwd = $1;
+    }
+    else {
+        $passwd = Digest::MD5::md5_hex( $lfm->{passwd} );
+    }
+    my $token = Digest::MD5::md5_hex( $passwd . $ts );
+
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+
+    # Handshake
+    my $url =
+        $baseurl
+      . "?hs=true&p="
+      . $proto . "&c="
+      . $client . "&v="
+      . $clientver . "&u="
+      . $u . "&t="
+      . $ts . "&a="
+      . $token;
+    while (1) {
+		my $resp = $ua->get($url);
+    	my ( $sid, $suburl, $npurl );
+	    if ( $resp->is_success ) {
+    	    my @r = split( "\n", $resp->decoded_content );
+        	if ( $r[0] eq "OK" ) {
+	            $sid    = $r[1];
+				$npurl	= $r[2];
+    	        $suburl = $r[3];
+        	    print $sid. "\n" . $npurl . "\n" . $suburl . "\n";
+				return [$sid, $npurl, $suburl];
+	        }
+    	    else {
+        	    print
+"BADAUTH: Incorrect authentication details. Username or password is wrong\n"
+	              if ( $r[0] eq "BADAUTH" );
+    	        print
+"BANNED: This version of the client was banned. Please upgrade to a newer version\n"
+	              if ( $r[0] eq "BANNED" );
+    	        print "BADTIME: Your system time is too far off the current time\n"
+        	      if ( $r[0] eq "BADTIME" );
+	        	  if ( $r[0] =~ /^FAILED:/ ) {
+				  	print $r[0] . "\n";
+					sleep 60 * $mult;
+					$mult *= 2
+						if ($mult <= 120);
+					next;
+				}
+            	return 0;
+	        }
+	    } else {
+    	    # Handshake failed
+        	print $resp->status_line;
+			sleep 60 * $mult;
+			$mult *= 2
+				if ($mult <= 120);
+			next;
+    	}
+	}
+}
+
+
+
+# TODO: Time-limit (30 secs) not honored
+# See http://www.last.fm/api/submissions for details
+sub lastfm {
+	my $hs = lastfm_handshake();
+	unless ($hs) {
+		die "Couldn't complete handshake";
+	}
+	my ($sid, $npurl, $suburl) = @$hs;
+
+    print "Entering loop\n";
+    my ( @submitted, $artist, $title );
+    my $postdata = {};
+    my $errcnt   = 0;
+	my $ua = new LWP::UserAgent;
+	$ua->timeout(10);
+    while (1) {
+        my @plist = reverse (playlist(10));
+        my $currsong = pop(@plist);    # The most recent element is the current song
+		if (defined($currsong->[0]) && $currsong->[0]) {
+			my ($cartist, $csong) = split(" - ", $currsong->[0], 2);
+			if (defined $cartist && $cartist && defined $csong && $csong) {
+				$postdata = {
+					s	=> $sid,
+					a	=> $cartist,
+					t	=> $csong,
+					b	=> "",
+					l	=> "",
+					n	=> "",
+					m	=> ""
+				};
+				print "Submitting NP info\n";
+                print "Suburl: $npurl\n";
+                print "Postdata:\n";
+                print Dumper($postdata);
+
+                my $resp = $ua->post( $npurl, $postdata );
+				if ( $resp->is_success ) {
+					my $status = ( split( "\n", $resp->decoded_content ) )[0];
+	                if ( $status eq "OK" ) {
+    		        	print "NP info was succesfully submitted\n";
+                    }
+                    elsif ( $status eq "BADSESSION" ) {
+						print "Lost handshake. Reassociating...\n";
+                        $hs = lastfm_handshake();
+						die "Couldn't reassociate with last.fm server"
+							unless ($hs);
+						($sid, $npurl, $suburl) = @$hs;
+						print "Done\n";
+                    }
+				}
+			}
+		}
+ 
+
+        print "Parsing playlist\n";
+        TRACKS: foreach my $tdata (@plist) {
+            my ( $track, $time ) = @$tdata;
+            print "Parsing track $track with time $time\n";
+            if ( defined($track) && $track && defined($time) && $time ) {
+				
+                # A completed track and we have a timestamp
+                foreach my $tr (@submitted) {
+                    if ( $tr->[0] eq $track && $tr->[1] eq $time ) {
+
+                        print "Already submitted $track with time $time\n";
+                        next TRACKS;
+					}
+                    
+                }
+
+                # Not submitted. DOIT
+                ( $artist, $title ) = split( " - ", $track, 2 );
+                if ( defined($artist) && $artist && defined($title) && $title ) {
+                    # XXX: Will submit tracks where the user has listened to less than 30 secs
+                    $postdata = {
+                        s      => $sid,
+                        "a[0]" => $artist,
+                        "t[0]" => $title,
+                        "o[0]" => "R", # Non-personalised broadcast
+                        "i[0]" => $time,
+                        "r[0]" => "",
+                        "b[0]" => "",
+                        "n[0]" => "",
+                        "l[0]" => "",
+                        "m[0]" => ""
+                    };
+                    
+					print "Submitting $track with time $time\n";
+                    print "Suburl: $suburl\n";
+                    print "Postdata:\n";
+                    print Dumper($postdata);
+
+                    my $resp = $ua->post( $suburl, $postdata );
+                    if ( $resp->is_success ) {
+                        my $status =
+                          ( split( "\n", $resp->decoded_content ) )[0];
+                        if ( $status eq "OK" ) {
+                            print "Track was succesfully submitted\n";
+                            push @submitted, $tdata;
+                            $errcnt = 0;    # Reset error counter
+                        }
+                        elsif ( $status eq "BADSESSION" ) {
+							print "Lost handshake. Reassociating...\n";
+                            $hs = lastfm_handshake();
+							die "Couldn't reassociate with last.fm server"
+								unless ($hs);
+							($sid, $npurl, $suburl) = @$hs;
+							print "Done\n";
+                        }
+                        elsif ( $status =~ /^FAILED (.*)$/ ) {
+                            print "Error: $1. Track: $track. Time: $time\n";
+                            $errcnt++;
+                        }
+                        else {
+                            print "Something weird happened: ",
+                              $resp->decoded_content;
+                            $errcnt++;
+                        }
+                    } else {
+                        print $resp->status_line, "\n";
+                        $errcnt++;
+                    }
+                } else {
+
+                    # Not strictly an error.
+                    print "Malformed data - unable to submit track: " 
+                      . $track . ", "
+                      . $time . "\n";
+                }
+            } else {
+
+                # Shouldn't happen
+                print "No associated timestamp with track: ", $track, "\n";
+            }
+        }
+        if ( $errcnt >= 3 ) {
+			# If three hard failure events occur consecutively, the client 
+			# should fall back to the handshake phase.
+            print "Three strikes and you're out\n";
+			$hs = lastfm_handshake();
+			die "Couldn't reassociate with last.fm server"
+				unless ($hs);
+			($sid, $npurl, $suburl) = @$hs;
+        }
+        sleep 30;
+    }
+    exit;
+}
+
+sub daemonize {
+    chdir '/' or die "Can't chdir to /: $!";
+    open STDIN, '<', '/dev/null' or die "Can't read /dev/null: $!";
+
+    defined( my $pid = fork ) or die "Can't fork: $!";
+    if ($pid) {
+        open my $fh, ">", $pidfile
+          or die "Can't open pidfile: $!";
+        print $fh $pid, "\n";
+        close($fh) or die "Can't close pidfile: $!";
+
+        # Only create last.fm submit fork, if it is actually needed
+        if (   defined( $lfm->{user} )
+            && $lfm->{user}
+            && defined( $lfm->{passwd} )
+            && $lfm->{passwd} )
+        {
+            defined( my $lpid = fork ) or die "Can't fork: $!";
+            if ($lpid) {
+                open my $fh, ">>", $pidfile
+                  or die "Can't open pidfile: $!";
+                print $fh $lpid, "\n";
+                close($fh) or die "Can't close pidfile: $!";
+                exit;
+            }
+            open STDOUT, ">", $lfmfile or die "Can't write to $lfmfile: $!";
+            lastfm();
+        }
+        exit;
+    }
+
+    # <Jediwave>You don't see this</Jediwave>
+    open (STDOUT, '|-', 'perl', '-nle', qq#
+		BEGIN { open(STDOUT, '>', "$logfile") or die "Can't write to $logfile: \$!"; };
+		print time, ":", \$_;
+		#)
+      or die "Can't open pipe: $!";
+    open STDERR, '>', '/dev/null' or die "Can't write to /dev/null: $!";
+    exec( "mplayer", "-msglevel", "all=-1:demuxer=4", "-playlist",
+        $stations->{ lc($act) }->{path} );
+}

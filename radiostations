@@ -1,0 +1,385 @@
+---
+# SomaFM
+beatblender:
+  desc: A late night blend of deep-house and downtempo chill
+  name: "[SomaFM] Beat Blender"
+  path: http://somafm.com/beatblender.pls
+  stream: 128 Kbit/s MP3
+digitalis:
+  desc: Digitally affected analog rock with a DIY mentality
+  name: "[SomaFM] Digitalis"
+  path: http://somafm.com/digitalis.pls
+  stream: 128 Kbit/s MP3
+dronezone:
+  desc: 'Served best chilled, safe with most medications. Atmospheric textures with minimal beats.'
+  name: "[SomaFM] Drone Zone"
+  path: http://somafm.com/dronezone.pls
+  stream: 128 Kbit/s MP3
+groovesalad:
+  desc: A nicely chilled plate of ambient beats and grooves.
+  name: "[SomaFM] Groove Salad"
+  path: http://somafm.com/groovesalad.pls
+  stream: 128 Kbit/s MP3
+indiepop:
+  desc: New and favorite classic indie pop tracks.
+  name: "[SomaFM] indie pop rocks"
+  path: http://somafm.com/indiepop.pls
+  stream: 128 Kbit/s MP3
+lush:
+  desc: 'Sensuous and mellow vocals, mostly female, with an electronic influence'
+  name: "[SomaFM] Lush"
+  path: http://somafm.com/lush.pls
+  stream: 128 Kbit/s MP3
+secretagent:
+  desc: 'The soundtrack for your stylish, mysterious, dangerous life. For Spies and PIs too!'
+  name: "[SomaFM] Secret Agent"
+  path: http://somafm.com/secretagent.pls
+  stream: 128 Kbit/s MP3
+spacestation:
+  desc: 'Tune in, turn on, space out. Spaced-out ambient and mid-tempo electronica'
+  name: "[SomaFM] Space Station Soma"
+  path: http://somafm.com/spacestation.pls
+  stream: 128 Kbit/s MP3
+cliqhop:
+  desc: Blips'n'beeps backed mostly w/beats. Intelligent Dance Music.
+  name: "[SomaFM] cliqhop idm"
+  path: http://somafm.com/cliqhop.pls
+  stream: 128 Kbit/s MP3
+sonicuniverse:
+  desc: NuJazz + avant-garde EuroJazz. Transcending the world of jazz with eclectic takes on tradition.
+  name: "[SomaFM] Sonic Universe"
+  path: http://somafm.com/sonicuniverse.pls
+  stream: 128 Kbit/s MP3
+illstreet:
+  desc: Classic bachelor pad, playful exotica and vintage music of tomorrow.
+  name: "[SomaFM] Illinois Street Lounge"
+  path: http://somafm.com/illstreet.pls
+  stream: 128 Kbit/s MP3
+bootliquor:
+  desc: Americana roots music with a bit of attitude. For Cowhands, Cowpokes and Cowtippers
+  name: "[SomaFM] Boot Liquor"
+  path: http://somafm.com/bootliquor.pls
+  stream: 128 Kbit/s MP3
+tags:
+  desc: Progressive house / trance. Tip top tunes.
+  name: "[SomaFM] Tag's Trip"
+  path: http://somafm.com/tags.pls
+  stream: 128 Kbit/s MP3
+doomed:
+  desc: Dark and scary industrial-inspired music for tortured souls.
+  name: "[SomaFM] Doomed"
+  path: http://somafm.com/doomed.pls
+  stream: 128 Kbit/s MP3
+
+# Digitally-Imported
+diexposure:
+  desc: Digitally Imported's Exposure NYC channel
+  name: "[DI] Exposure NYC"
+  path: http://www.di.fm/mp3/exposurenyc.pls
+  stream: 96 Kbit/s MP3
+ditrance:
+  desc: Digitally Imported's Trance channel
+  name: "[DI] Trance"
+  path: http://www.di.fm/mp3/trance.pls
+  stream: 96 Kbit/s MP3
+divtrance:
+  desc: Digitally Imported's Vocal Trance channel
+  name: "[DI] Vocal Trance"
+  path: http://www.di.fm/mp3/vocaltrance.pls
+  stream: 96 Kbit/s MP3
+dielectro:
+  desc: Digitally Imported's Electro channel
+  name: "[DI] Electro"
+  path: http://www.di.fm/mp3/electro.pls
+  stream: 96 Kbit/s MP3
+dichillout:
+  desc: Digitally Imported's Chillout channel
+  name: "[DI] Chillout"
+  path: http://www.di.fm/mp3/chillout.pls
+  stream: 96 Kbit/s MP3
+dieurodance:
+  desc: Digitally Imported's Euro Dance channel
+  name: "[DI] Euro Dance"
+  path: http://www.di.fm/mp3/eurodance.pls
+  stream: 96 Kbit/s MP3
+dihouse:
+  desc: Digitally Imported's House channel
+  name: "[DI] House"
+  path: http://www.di.fm/mp3/house.pls
+  stream: 96 Kbit/s MP3
+disoulfulhouse:
+  desc: Digitally Imported's Soulful House channel
+  name: "[DI] Soulful House"
+  path: http://www.di.fm/mp3/soulfulhouse.pls
+  stream: 96 Kbit/s MP3
+difunkyhouse:
+  desc: Digitally Imported's Funky House channel
+  name: "[DI] Funky House"
+  path: http://www.di.fm/mp3/funkyhouse.pls
+  stream: 96 Kbit/s MP3
+ditribalhouse:
+  desc: Digitally Imported's Tribal House channel
+  name: "[DI] Tribal House"
+  path: http://www.di.fm/mp3/tribalhouse.pls
+  stream: 96 Kbit/s MP3
+diharddance:
+  desc: Digitally Imported's Hard Dance channel
+  name: "[DI] Hard Dance"
+  path: http://www.di.fm/mp3/harddance.pls
+  stream: 96 Kbit/s MP3
+diminimal:
+  desc: Digitally Imported's Minimal channel
+  name: "[DI] Minimal"
+  path: http://www.di.fm/mp3/minimal.pls
+  stream: 96 Kbit/s MP3
+ditechno:
+  desc: Digitally Imported's Techno channel
+  name: "[DI] Techno"
+  path: http://www.di.fm/mp3/techno.pls
+  stream: 96 Kbit/s MP3
+diprogressive:
+  desc: Digitally Imported's Progressive channel
+  name: "[DI] Progressive"
+  path: http://www.di.fm/mp3/progressive.pls
+  stream: 96 Kbit/s MP3
+digoapsy:
+  desc: Digitally Imported's Goa-Psy Trance channel
+  name: "[DI] Goa-Psy Trance"
+  path: http://www.di.fm/mp3/goapsy.pls
+  stream: 96 Kbit/s MP3
+dihardstyle:
+  desc: Digitally Imported's Hardstyle channel
+  name: "[DI] Hardstyle"
+  path: http://www.di.fm/mp3/hardstyle.pls
+  stream: 96 Kbit/s MP3
+dihardcore:
+  desc: Digitally Imported's Hard Core channel
+  name: "[DI] Hard Core"
+  path: http://www.di.fm/mp3/hardcore.pls
+  stream: 96 Kbit/s MP3
+didjmixes:
+  desc: Digitally Imported's DJ Mixes channel
+  name: "[DI] DJ Mixes"
+  path: http://www.di.fm/mp3/djmixes.pls
+  stream: 96 Kbit/s MP3
+dilounge:
+  desc: Digitally Imported's Lounge channel
+  name: "[DI] Lounge"
+  path: http://www.di.fm/mp3/lounge.pls
+  stream: 96 Kbit/s MP3
+didrumandbass:
+  desc: Digitally Imported's Drum'n'Bass channel
+  name: "[DI] Drum'n'Bass"
+  path: http://www.di.fm/mp3/drumandbass.pls
+  stream: 96 Kbit/s MP3
+dioldelectro:
+  desc: Digitally Imported's Oldschool Electronica channel
+  name: "[DI] Oldschool Electronica"
+  path: http://www.di.fm/mp3/classictechno.pls
+  stream: 96 Kbit/s MP3
+diambient:
+  desc: Digitally Imported's Ambient channel
+  name: "[DI] Ambient"
+  path: http://www.di.fm/mp3/ambient.pls
+  stream: 96 Kbit/s MP3
+dibreaks:
+  desc: Digitally Imported's Breaks channel
+  name: "[DI] Breaks"
+  path: http://www.di.fm/mp3/breaks.pls
+  stream: 96 Kbit/s MP3
+disynth:
+  desc: Digitally Imported's Future Synthpop channel
+  name: "[DI] Future Synthpop"
+  path: http://www.di.fm/mp3/futuresynthpop.pls
+  stream: 96 Kbit/s MP3
+digabber:
+  desc: Digitally Imported's Gabber channel
+  name: "[DI] Gabber"
+  path: http://www.di.fm/mp3/gabber.pls
+  stream: 96 Kbit/s MP3
+
+# SKY.fm
+skysmoothjazz:
+  desc: SKY.fm's Smooth Jazz channel
+  name: "[SKY.fm] Smooth Jazz"
+  path: http://www.sky.fm/mp3/smoothjazz.pls
+  stream: 96 Kbit/s MP3
+skyupjazz:
+  desc: SKY.fm's Uptempo Smooth Jazz channel
+  name: "[SKY.fm] Uptempo Smooth Jazz"
+  path: http://www.sky.fm/mp3/uptemposmoothjazz.pls
+  stream: 96 Kbit/s MP3
+skytop:
+  desc: SKY.fm's Top Hits Music channel
+  name: "[SKY.fm] Top Hits Music"
+  path: http://www.sky.fm/mp3/tophits.pls
+  stream: 96 Kbit/s MP3
+sky80s:
+  desc: SKY.fm's Best of the 80s channel
+  name: "[SKY.fm] Best of the 80s"
+  path: http://www.sky.fm/mp3/the80s.pls
+  stream: 96 Kbit/s MP3
+sky70s:
+  desc: SKY.fm's All Hit 70s channel
+  name: "[SKY.fm] All Hit 70s"
+  path: http://www.sky.fm/mp3/hit70s.pls
+  stream: 96 Kbit/s MP3
+skyoldies:
+  desc: SKY.fm's Oldies channel
+  name: "[SKY.fm] Oldies"
+  path: http://www.sky.fm/mp3/oldies.pls
+  stream: 96 Kbit/s MP3
+skyclassical:
+  desc: SKY.fm's Mostly Classical channel
+  name: "[SKY.fm] Mostly Classical"
+  path: http://www.sky.fm/mp3/classical.pls
+  stream: 96 Kbit/s MP3
+skyguitar:
+  desc: SKY.fm's Classical Guitar channel
+  name: "[SKY.fm] Classical Guitar"
+  path: http://www.sky.fm/mp3/guitar.pls
+  stream: 96 Kbit/s MP3
+skypiano:
+  desc: SKY.fm's Solo Piano channel
+  name: "[SKY.fm] Solo Piano"
+  path: http://www.sky.fm/mp3/solopiano.pls
+  stream: 96 Kbit/s MP3
+skynewage:
+  desc: SKY.fm's New Age channel
+  name: "[SKY.fm] New Age"
+  path: http://www.sky.fm/mp3/newage.pls
+  stream: 96 Kbit/s MP3
+skyworld:
+  desc: SKY.fm's World Music channel
+  name: "[SKY.fm] World Music"
+  path: http://www.sky.fm/mp3/world.pls
+  stream: 96 Kbit/s MP3
+skyreggae:
+  desc: SKY.fm's Reggae channel
+  name: "[SKY.fm] Reggae"
+  path: http://www.sky.fm/mp3/reggae.pls
+  stream: 96 Kbit/s MP3
+skylounge:
+  desc: SKY.fm's DaTempo Lounge channel
+  name: "[SKY.fm] DaTempo Lounge"
+  path: http://www.sky.fm/mp3/datempolounge.pls
+  stream: 96 Kbit/s MP3
+skycountry:
+  desc: SKY.fm's Country channel
+  name: "[SKY.fm] Country"
+  path: http://www.sky.fm/mp3/country.pls
+  stream: 96 Kbit/s MP3
+skypianojazz:
+  desc: SKY.fm's Piano Jazz channel
+  name: "[SKY.fm] Piano Jazz"
+  path: http://www.sky.fm/mp3/pianojazz.pls
+  stream: 96 Kbit/s MP3
+skybossanova:
+  desc: SKY.fm's Bossa Nova Jazz channel
+  name: "[SKY.fm] Bossa Nova Jazz"
+  path: http://www.sky.fm/mp3/bossanova.pls
+  stream: 96 Kbit/s MP3
+skyrock:
+  desc: SKY.fm's Classic Rock channel
+  name: "[SKY.fm] Classic Rock"
+  path: http://www.sky.fm/mp3/classicrock.pls
+  stream: 96 Kbit/s MP3
+skyaltrock:
+  desc: SKY.fm's Alternative Rock channel
+  name: "[SKY.fm] Alternative Rock"
+  path: http://www.sky.fm/mp3/altrock.pls
+  stream: 96 Kbit/s MP3
+skyurban:
+  desc: SKY.fm's Urban Jamz channel
+  name: "[SKY.fm] Urban Jamz"
+  path: http://www.sky.fm/mp3/urbanjamz.pls
+  stream: 96 Kbit/s MP3
+skyrap:
+  desc: SKY.fm's Classic (C)rap channel
+  name: "[SKY.fm] Classic Rap"
+  path: http://www.sky.fm/mp3/classicrap.pls
+  stream: 96 Kbit/s MP3
+skyindie:
+  desc: SKY.fm's Indie Rock channel
+  name: "[SKY.fm] Indie Rock"
+  path: http://www.sky.fm/mp3/indierock.pls
+  stream: 96 Kbit/s MP3
+skylove:
+  desc: SKY.fm's Love Music channel
+  name: "[SKY.fm] Love Music"
+  path: http://www.sky.fm/mp3/lovemusic.pls
+  stream: 96 Kbit/s MP3
+skybeatles:
+  desc: SKY.fm's Beatles Tribute channel
+  name: "[SKY.fm] Beatles Tribute"
+  path: http://www.sky.fm/mp3/beatles.pls
+  stream: 96 Kbit/s MP3
+skysoundtracks:
+  desc: SKY.fm's Simply Soundtracks channel
+  name: "[SKY.fm] Simply Soundtracks"
+  path: http://www.sky.fm/mp3/soundtracks.pls
+  stream: 96 Kbit/s MP3
+skychrist:
+  desc: SKY.fm's Contemporary Christian channel
+  name: "[SKY.fm] Contemporary Christian"
+  path: http://www.sky.fm/mp3/christian.pls
+  stream: 96 Kbit/s MP3
+skysalsa:
+  desc: SKY.fm's Salsa channel
+  name: "[SKY.fm] Salsa"
+  path: http://www.sky.fm/mp3/salsa.pls
+  stream: 96 Kbit/s MP3
+skyjazz:
+  desc: SKY.fm's Modern Jazz channel
+  name: "[SKY.fm] Modern Jazz"
+  path: http://www.sky.fm/mp3/jazz.pls
+  stream: 96 Kbit/s MP3
+
+# DR
+p1:
+  desc: Danmarks Radio Program 1
+  name: DR P1
+  path: http://www.dr.dk/netradio/Metafiler/pls/dr_p1_128.pls
+  stream: 128 Kbit/s
+p2:
+  desc: Danmarks Radio Program 2
+  name: DR P2
+  path: http://www.dr.dk/netradio/Metafiler/pls/dr_p2_128.pls
+  stream: 128 Kbit/s
+p3:
+  desc: Danmarks Radio Program 3
+  name: DR P3
+  path: http://www.dr.dk/netradio/Metafiler/pls/dr_p3_128.pls
+  stream: 128 Kbit/s
+barometer:
+  desc: Indierock, indietronica, alternativ country og elektronica
+  name: Det elektriske barometer
+  path: http://www.dr.dk/netradio/Metafiler/pls/dr_barometer_128.pls
+  stream: 128 Kbit/s
+drelectronica:
+  desc: Kanalen for lyttere med åbne ører, hang til elektroniske klange og rytmiske finurligheder
+  name: DR Electronica
+  path: http://www.dr.dk/netradio/Metafiler/pls/dr_electronica_128.pls
+  stream: 128 Kbit/s
+boogie:
+  desc: Alle de store hits, 24/7/365! Pop, rock, dance og r&b. 
+  name: DR Boogieradio
+  path: http://www.dr.dk/netradio/Metafiler/pls/dr_boogie_128.pls
+  stream: 128 Kbit/s
+drrock:
+  desc: Rendyrket rockkanal med fokus på den klassiske rock fra 60'erne til i dag.
+  name: DR Rock
+  path: http://www.dr.dk/netradio/Metafiler/pls/dr_rock_128.pls
+  stream: 128 Kbit/s
+
+animenfo:
+  desc: AnimeNfo radio - the best Anime radio
+  name: AnimeNfo radio
+  path: http://www.animenfo.com/radio/listen.m3u
+  stream: 192 Kbit/s MP3
+
+i-a:
+  desc: Radiostation of the IRC network immortal-anime
+  name: Immortal-Radio
+  path: http://www.immortal-radio.com:8000/listen.pls
+  stream: 96 Kbit/s MP3
