@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+my $q;
+my @paths;
+my @files;
+
+(/-q/) ? $q = 1 : push @paths, $_ foreach (@ARGV);
+
+foreach my $path (@paths) {
+	if (-r $path) {
+		@files = split("\n", qx(ls "$path"));
+	} else {
+		@files = split("\n", qx(ls));
+	}
+	
+	foreach (@files) {
+		next unless /^.+[\[\(]([a-fA-F0-9]{8})[\]\)]/;
+		$_ = $path . "/" . $_ if (-d $path);
+		chomp($crc = `crc32 "$_"`);
+		if (lc($1) eq lc($crc)) {
+			print "[ \e[92mOK\e[00m ] $_";
+			$q ? print "\n" : print ":\t " . qx(/usr/bin/ed2k_hash "$_");
+		} else {
+			print "[ \e[91m!!\e[00m ] $_\n";
+		}
+	}
+}
