@@ -68,8 +68,11 @@ if ( -e $configfile ) {
             $stationsfile = $1;
         }
         elsif (/^colo(?:u|)r\s*=\s*(.*)$/i) {
-            ($1 =~ /(?:false|0)/i) ? 
-                $logfile = 0 : $logfile = 1;
+            if ($1 =~ /(?:false|no|0)/i) {
+                $colour = 0;
+            } elsif ($1 =~ /(?:true|yes|1)/i) {
+                $colour = 1;
+            }
         } else {
             print $configfile, ":", $., " Unrecognized line: ", $_, "\n";
         }
