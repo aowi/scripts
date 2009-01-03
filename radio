@@ -40,17 +40,6 @@ my $lfmfile      = "/dev/null";
 my $lfm          = {};
 my $v;
 my $colour = 1;
-GetOptions(
-    'verbose|v!'       => \$v,
-    'colour|t!'        => \$colour,
-    'pidfile|p=s'      => \$pidfile,
-    'stationsfile|r=s' => \$stationsfile,
-    'statefile|s=s'    => \$statefile,
-    'logfile|l=s'      => \$logfile,
-    'configfile|c=s'   => \$configfile,
-    'lfmfile|f=s'      => \$lfmfile,
-    'help|h|?'         => sub { usage(0) }
-);
 
 if ( -e $configfile ) {
     open( my $fh, "<", $configfile ) or die "Can't open config file: $!";
@@ -63,12 +52,42 @@ if ( -e $configfile ) {
         elsif (/^lastfm_passwd\s*=\s*(.*)$/i) {
             $lfm->{passwd} = $1;
         }
-        else {
+        elsif (/^lastfm_logfile\s*=\s*(.*)$/i) {
+            $lfmfile = $1;
+        }
+        elsif (/^logfile\s*=\s*(.*)$/i) {
+            $logfile = $1;
+        }
+        elsif (/^pidfile\s*=\s*(.*)$/i) {
+            $pidfile = $1;
+        }
+        elsif (/^statefile\s*=\s*(.*)$/i) {
+            $statefile = $1;
+        }
+        elsif (/^stationsfile\s*=\s*(.*)$/i) {
+            $stationsfile = $1;
+        }
+        elsif (/^colo(?:u|)r\s*=\s*(.*)$/i) {
+            ($1 =~ /(?:false|0)/i) ? 
+                $logfile = 0 : $logfile = 1;
+        } else {
             print $configfile, ":", $., " Unrecognized line: ", $_, "\n";
         }
     }
     close($fh);
 }
+
+GetOptions(
+    'verbose|v!'       => \$v,
+    'colour|t!'        => \$colour,
+    'pidfile|p=s'      => \$pidfile,
+    'stationsfile|r=s' => \$stationsfile,
+    'statefile|s=s'    => \$statefile,
+    'logfile|l=s'      => \$logfile,
+    'configfile|c=s'   => \$configfile,
+    'lfmfile|f=s'      => \$lfmfile,
+    'help|h|?'         => sub { usage(0) }
+);
 
 my $stations = LoadFile($stationsfile);
 
@@ -157,7 +176,12 @@ if ( exists $stations->{ lc($act) } ) {
             name   => $stations->{ lc($act) }->{name},
             desc   => $stations->{ lc($act) }->{desc},
             path   => $stations->{ lc($act) }->{path},
-            stream => $stations->{ lc($act) }->{stream}
+            stream => $stations->{ lc($act) }->{stream},
+            config => {
+                pidfile         => $pidfile,
+                logfile         => $logfile,
+                lastfm_logfile  => $lfmfile
+            }            
         }
     );
     daemonize();
@@ -220,23 +244,26 @@ sub info {
 }
 
 sub stop {
-    if ( -e $pidfile ) {
-        open my $fh, "<", $pidfile or die "Can't open pidfile: $!";
-        while (<$fh>) {    # Om nom nom
-            chomp;
-            if ( -e "/proc/" . $_ ) {
-                kill 15, $_ or die "Can't kill radio: $!";
+    if ( -e $statefile ) {
+        my $state = LoadFile($statefile);
+        if ( -e $state->{config}->{pidfile} ) {
+            open my $fh, "<", $state->{config}->{pidfile} or die "Can't open pidfile: $!";
+            while (<$fh>) {    # Om nom nom
+                chomp;
+                if ( -e "/proc/" . $_ ) {
+                    kill 15, $_ or die "Can't kill radio: $!";
+                }
             }
-        }
-        close($fh) or die "Can't close pidfile: $!";
-        unlink $pidfile or die "Can't remove pidfile: $!";
-        if ( -f $logfile ) {
-            unlink $logfile or die "Can't remove logfile: $!";
-        }
-        if ( -f $lfmfile ) {
-            unlink $lfmfile or die "Can't remove lfmfile: $!";
-        }
-        return 1;
+            close($fh) or die "Can't close pidfile: $!";
+            unlink $state->{config}->{pidfile} or die "Can't remove pidfile: $!";
+            if ( -f $state->{config}->{logfile} ) {
+                unlink $state->{config}->{logfile} or die "Can't remove logfile: $!";
+            }
+            if ( -f $state->{config}->{lastfm_logfile} ) {
+                unlink $state->{config}->{lastfm_logfile} or die "Can't remove lfmfile: $!";
+            }
+            return 1;
+        }   
     }
     print "Radio doesn't appear to be running\n";
     return 0;
