@@ -7,18 +7,18 @@ use strict;
 use warnings;
 use File::Find;
 use File::Spec;
-use Data::Dumper;
 
 my $usemod = 1;
 $usemod = 0 unless ( eval "require Audio::FLAC::Header; 1" );
 
 my @aacencopts = qw(-q 0.40);
-my $tempfile = File::Spec->tmpdir()."/flac2m4a.wav.$$";
+my $tempfile   = File::Spec->tmpdir() . "/flac2m4a.wav.$$";
 
-foreach(@ARGV) {
-    if (-d $_) {
-        find(\&process, $_);
-    } elsif (-f $_) {
+foreach (@ARGV) {
+    if ( -d $_ ) {
+        find( \&process, $_ );
+    }
+    elsif ( -f $_ ) {
         convert($_);
     }
 }
@@ -30,93 +30,107 @@ sub process {
 
 sub convert {
     my $path = shift;
-    unless (-f $path) {
-        print $path." is not a file. Skipped!";
+    unless ( -f $path ) {
+        print $path. " is not a file. Skipped!";
         return;
     }
-    
+
     my $tags = {};
     if ($usemod) {
         my $flacfile = Audio::FLAC::Header->new($_);
-        return unless (defined $flacfile);
+        return unless ( defined $flacfile );
         $tags = $flacfile->tags;
-        foreach (keys %$tags) {
-            # This roundabout way with a temporary variable isn't strictly needed
-            # but we want to delete the old tags just in case.
+        foreach ( keys %$tags ) {
+
+           # This roundabout way with a temporary variable isn't strictly needed
+           # but we want to delete the old tags just in case.
             my $tmp = $tags->{$_};
             delete $tags->{$_};
-            $tags->{lc($_)} = $tmp;
+            $tags->{ lc($_) } = $tmp;
         }
-    } else {
+    }
+    else {
         $tags = tagsFromMetaflac($_);
     }
-    
+
     my $out = $path;
     $out =~ s/\.flac$/.m4a/i;
-    if ($out eq $_) {
+    if ( $out eq $_ ) {
         $out .= ".m4a";
     }
 
     my @aactagopts = ();
-    push @aactagopts, qq{-meta:track="} . $tags->{tracknumber} . qq{"}
-        if (exists $tags->{tracknumber});
-    push @aactagopts, qq{-meta:totaltracks="} . $tags->{totaltracks} . qq{"}
-        if (exists $tags->{totaltracks}); 
-    push @aactagopts, qq{-meta:title="} . $tags->{title} . qq{"}
-        if (exists $tags->{title});
-    push @aactagopts, qq{-meta:artist="} . $tags->{artist} . qq{"}
-        if (exists $tags->{artist});
-    push @aactagopts, qq{-meta:album="} . $tags->{album} . qq{"}
-        if (exists $tags->{album});
-    push @aactagopts, qq{-meta:year="} . $tags->{date} . qq{"}
-        if (exists $tags->{date});
-    push @aactagopts, qq{-meta:comment="} . $tags->{comment} . qq{"}
-        if (exists $tags->{comment});
-    push @aactagopts, qq{-meta:genre="} . $tags->{genre} . qq{"}
-        if (exists $tags->{genre});
-    push @aactagopts, qq{-meta:disc="}, $tags->{discnumber} . qq{"}
-        if (exists $tags->{discnumber});
-    
-    my $ifname  = (File::Spec->splitpath($_))[2];
-    my $ofname = (File::Spec->splitpath($out))[2];
+    push @aactagopts, qq{-meta:track="}         . $tags->{tracknumber}  . qq{"}
+      if ( exists $tags->{tracknumber} );
+    push @aactagopts, qq{-meta:totaltracks="}   . $tags->{totaltracks}  . qq{"}
+      if ( exists $tags->{totaltracks} );
+    push @aactagopts, qq{-meta:title="}         . $tags->{title}        . qq{"}
+      if ( exists $tags->{title} );
+    push @aactagopts, qq{-meta:artist="}        . $tags->{artist}       . qq{"}
+      if ( exists $tags->{artist} );
+    push @aactagopts, qq{-meta:album="}         . $tags->{album}        . qq{"}
+      if ( exists $tags->{album} );
+    push @aactagopts, qq{-meta:year="}          . $tags->{date}         . qq{"}
+      if ( exists $tags->{date} );
+    push @aactagopts, qq{-meta:comment="}       . $tags->{comment}      . qq{"}
+      if ( exists $tags->{comment} );
+    push @aactagopts, qq{-meta:genre="}         . $tags->{genre}        . qq{"}
+      if ( exists $tags->{genre} );
+    push @aactagopts, qq{-meta:disc="}          , $tags->{discnumber}   . qq{"}
+      if ( exists $tags->{discnumber} );
+
+    my $ifname = ( File::Spec->splitpath($_) )[2];
+    my $ofname = ( File::Spec->splitpath($out) )[2];
     print "Decoding $ifname... ";
-    if (system('flac', '-s', '-d', $path, '-o', $tempfile) != 0) {
+    if ( system( 'flac', '-s', '-d', $path, '-o', $tempfile ) != 0 ) {
         print "\nFailed to decode $path. Skipped!\n";
-        unlink $tempfile if (-e $tempfile) 
-            or print "Couldn't unlink $tempfile: $!";
+        unlink $tempfile
+          if ( -e $tempfile )
+          or print "Couldn't unlink $tempfile: $!";
         return;
-    } else { 
+    }
+    else {
         print "Done!\n";
     }
     print "Encoding $ofname... ";
-    if (system("neroAacEnc @aacencopts -if \"$tempfile\" -of \"$out\" >/dev/null 2>&1") != 0) {
+    if (
+        system(
+"neroAacEnc @aacencopts -if \"$tempfile\" -of \"$out\" >/dev/null 2>&1"
+        ) != 0
+      )
+    {
         print "\nFailed to encode $_. Skipped!\n";
-        unlink $tempfile if (-e $tempfile) 
-            or print "Couldn't unlink $tempfile: $!";
+        unlink $tempfile
+          if ( -e $tempfile )
+          or print "Couldn't unlink $tempfile: $!";
         return;
-    } else {
+    }
+    else {
         print "Done!\n";
-        print "Tagging $ofname... "; 
-        if (system("neroAacTag \"$out\" @aactagopts >/dev/null 2>&1") != 0) {
+        print "Tagging $ofname... ";
+        if ( system("neroAacTag \"$out\" @aactagopts >/dev/null 2>&1") != 0 ) {
             print "\nFailed to tag $_. Skipped!\n";
-            unlink $out if (-e $out)
-                or print "Couldn't unlink $out: $!";
+            unlink $out
+              if ( -e $out )
+              or print "Couldn't unlink $out: $!";
             return;
-        } else {
+        }
+        else {
             print "Done\n";
         }
     }
-    unlink $tempfile if (-e $tempfile) 
-        or print "Couldn't unlink $tempfile: $!\n";
+    unlink $tempfile
+      if ( -e $tempfile )
+      or print "Couldn't unlink $tempfile: $!\n";
 }
 
 sub tagsFromMetaflac {
     my $file = shift;
     my $tags = ();
-    open(my $mf, "-|", "metaflac", ("--export-tags-to=-", $_));
-    while(<$mf>) {
-        if (/^(.*?)=(.*)$/){
-            $tags->{lc($1)} = $2;
+    open( my $mf, "-|", "metaflac", ( "--export-tags-to=-", $_ ) );
+    while (<$mf>) {
+        if (/^(.*?)=(.*)$/) {
+            $tags->{ lc($1) } = $2;
         }
     }
     close($mf);
