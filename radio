@@ -168,7 +168,11 @@ elsif ( defined $act && $act eq 'start' ) {
 
 if ( exists $stations->{ lc($act) } ) {
     if ( -e $pidfile ) {
-
+        if (-e $statefile && LoadFile($statefile)->{tag} eq lc($act)) {
+            # Pidfile exists, statefile exists, and tag is the same.
+            # No need to do anything then.
+            exit 0;
+        }
         # Assume we're already playing, so stop.
         stop();
     }
