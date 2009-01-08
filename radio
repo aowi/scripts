@@ -96,10 +96,15 @@ my $stations = LoadFile($stationsfile);
 
 my $act = shift;
 
-if ( defined $act && $act eq 'stop' ) {
+unless (defined $act) {
+    listStations();
+    exit;
+}
+
+if ( $act eq 'stop' ) {
     stop() ? exit 0 : exit 1;
 }
-elsif ( defined $act && $act eq 'status' ) {
+elsif ( $act eq 'status' ) {
     if ( -e $pidfile ) {
         my $status = LoadFile($statefile);
         my $np     = np();
@@ -115,7 +120,7 @@ elsif ( defined $act && $act eq 'status' ) {
     }
     exit;
 }
-elsif ( defined $act && $act eq 'info' ) {
+elsif ( $act eq 'info' ) {
     my $tag = shift;
     unless ( defined $tag && $tag ) {
         print "You must specify a tag\n";
@@ -128,7 +133,7 @@ elsif ( defined $act && $act eq 'info' ) {
     print $tag, " not found\n";
     exit 1;
 }
-elsif ( defined $act && $act eq 'random' ) {
+elsif ( $act eq 'random' ) {
     my @tags = keys %$stations;
     $act = $tags[ int( rand(@tags) ) ];
     print "Playing $act\n" if ($v);
@@ -144,7 +149,7 @@ elsif ( defined $act && $act eq 'np' ) {
         exit 1;
     }
 }
-elsif ( defined $act && $act eq 'playlist' ) {
+elsif ( $act eq 'playlist' ) {
     my $num = shift;
     $num ||= 10;
     my @list = playlist($num);
@@ -155,7 +160,7 @@ elsif ( defined $act && $act eq 'playlist' ) {
     }
     exit;
 }
-elsif ( defined $act && $act eq 'start' ) {
+elsif ( $act eq 'start' ) {
     if ( -e $statefile ) {
         my $old = LoadFile($statefile);
         $act = $old->{tag};
@@ -195,6 +200,7 @@ if ( exists $stations->{ lc($act) } ) {
 }
 
 # If all else fails, print a list of stations
+print $act, ": No such station\n";
 listStations();
 
 sub playlist {
