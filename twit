@@ -1,0 +1,35 @@
+#!/usr/bin/perl
+# vim: set expandtab:ts=4:sw=4
+use strict;
+use warnings;
+use Net::Twitter;
+
+# The number of twits in this piece of code is
+# dangerously high.
+
+my $twitter = Net::Twitter->new(
+    username => "monkeyboy",
+    password => "orangutan"
+);
+
+my $act = shift;
+if (defined $act && $act eq 'friends') {
+    my $twits = $twitter->friends_timeline({ count => 10 });
+    foreach my $twit (@$twits) {
+        # Only print first line of message.
+        my $text = (split("\n", $twit->{text}))[0];
+        print $twit->{user}->{screen_name}, ": ", $text, "\n";
+    }
+}
+elsif ( defined $act && $act eq 'post') {
+    my $twit = join(" ", @ARGV);
+    unless (defined $twit && $twit) {
+        # Multiline message goes through STDIN
+        $twit = join("\n", <STDIN>);
+    }
+    if (defined $twit && $twit) {
+        my $r = $twitter->update($twit);
+        defined $r ? exit 0 : exit 1;
+#         print $twit, "\n";
+    }
+}
