@@ -219,10 +219,18 @@ sub playlist {
             s/^.*StreamTitle='//;
             s/';StreamUrl.*$//;
             if ( defined($time) && $time ) {
-                push @playlist, [ $_, $time ];
+                my $dur = 0;
+                if (@playlist >= 1) {
+                    $dur = $time - ($playlist[@playlist-1])->[1];
+#                    my $td = pop @playlist;
+#                    $td->[2] = $dur;
+#                    push @playlist, $td;
+                    $playlist[@playlist-1]->[2] = $dur;
+                }
+                push @playlist, [ $_, $time, "0" ];
             }
             else {
-                push @playlist, [ $_, "0" ];
+                push @playlist, [ $_, "0", "0" ];
             }
         }
     }
@@ -433,7 +441,6 @@ sub lastfm_handshake {
 
 
 
-# TODO: Time-limit (30 secs) not honored
 # See http://www.last.fm/api/submissions for details
 sub lastfm {
     my $hs = lastfm_handshake();
@@ -489,24 +496,28 @@ sub lastfm {
 
         print "Parsing playlist\n";
         TRACKS: foreach my $tdata (@plist) {
-            my ( $track, $time ) = @$tdata;
+            my ( $track, $time, $dur ) = @$tdata;
             print "Parsing track $track with time $time\n";
-            if ( defined($track) && $track && defined($time) && $time ) {
+            if ( defined($track) && $track && defined($time) && $time && defined($dur)) {
                 
                 # A completed track and we have a timestamp
+
+                if ($dur > 0 && $dur <= 30) {
+                    print "Not submitting $track: too short ($dur secs)\n";
+                    next;
+                }
+
                 foreach my $tr (@submitted) {
                     if ( $tr->[0] eq $track && $tr->[1] eq $time ) {
 
                         print "Already submitted $track with time $time\n";
                         next TRACKS;
                     }
-                    
                 }
 
                 # Not submitted. DOIT
                 ( $artist, $title ) = split( " - ", $track, 2 );
                 if ( defined($artist) && $artist && defined($title) && $title ) {
-                    # XXX: Will submit tracks where the user has listened to less than 30 secs
                     $postdata = {
                         s      => $sid,
                         "a[0]" => $artist,
@@ -516,11 +527,15 @@ sub lastfm {
                         "r[0]" => "",
                         "b[0]" => "",
                         "n[0]" => "",
-                        "l[0]" => "",
                         "m[0]" => ""
                     };
+                    if ($dur) {
+                        $postdata->{"l[0]"} = $dur;
+                    } else {
+                        $postdata->{"l[0]"} = "";
+                    }
                     
-                    print "Submitting $track with time $time\n";
+                    print "Submitting $track with time $time and dur $dur\n";
                     print "Suburl: $suburl\n";
                     print "Postdata:\n";
                     print Dumper($postdata);
@@ -565,6 +580,7 @@ sub lastfm {
             } else {
 
                 # Shouldn't happen
+                print Dumper($tdata);
                 print "No associated timestamp with track: ", $track, "\n";
             }
         }
