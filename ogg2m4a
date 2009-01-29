@@ -1,0 +1,108 @@
+#!/usr/bin/perl
+# vim: set expandtab:ts=4:sw=4
+
+# This requires neroAacEnc and neroAacTag to be in your path
+
+use strict;
+use warnings;
+use File::Find;
+use File::Spec;
+use Music::Tag;
+
+my @aacencopts = qw(-q 0.40);
+my $tempfile   = File::Spec->tmpdir() . "/ogg2m4a.wav.$$";
+
+foreach (@ARGV) {
+    if ( -d $_ ) {
+        find( \&process, $_ );
+    }
+    elsif ( -f $_ ) {
+        convert($_);
+    }
+}
+
+sub process {
+    return unless (/.ogg$/i);
+    convert($File::Find::name);
+}
+
+sub convert {
+    my $path = shift;
+    unless ( -f $path ) {
+        print $path. " is not a file. Skipped!";
+        return;
+    }
+
+    my $oggfile = Music::Tag->new($_, { quiet => 1 }, "OGG");
+    return unless ( defined $oggfile );
+    $oggfile->get_tag;
+    print Dumper($oggfile);
+
+    my $out = $path;
+    $out =~ s/\.ogg$/.m4a/i;
+    if ( $out eq $_ ) {
+        $out .= ".m4a";
+    }
+
+    my @aactagopts = ();
+    push @aactagopts, qq{-meta:track="}         . $oggfile->track  . qq{"}
+      if ( defined $oggfile->track );
+    push @aactagopts, qq{-meta:totaltracks="}   . $oggfile->totaltracks  . qq{"}
+      if ( defined $oggfile->totaltracks );
+    push @aactagopts, qq{-meta:title="}         . $oggfile->title        . qq{"}
+      if ( defined $oggfile->title );
+    push @aactagopts, qq{-meta:artist="}        . $oggfile->artist       . qq{"}
+      if ( defined $oggfile->artist );
+    push @aactagopts, qq{-meta:album="}         . $oggfile->album        . qq{"}
+      if ( defined $oggfile->album );
+    push @aactagopts, qq{-meta:year="}          . $oggfile->releasetime  . qq{"}
+      if ( defined $oggfile->releasetime );
+    push @aactagopts, qq{-meta:comment="}       . $oggfile->comment      . qq{"}
+      if ( defined $oggfile->comment );
+    push @aactagopts, qq{-meta:genre="}         . $oggfile->genre        . qq{"}
+      if ( defined $oggfile->genre );
+
+    my $ifname = ( File::Spec->splitpath($_) )[2];
+    my $ofname = ( File::Spec->splitpath($out) )[2];
+    print "Decoding $ifname... ";
+    if ( system( 'oggdec', '-Q', $path, '-o', $tempfile ) != 0 ) {
+        print "\nFailed to decode $path. Skipped!\n";
+        unlink $tempfile
+          if ( -e $tempfile )
+          or print "Couldn't unlink $tempfile: $!";
+        return;
+    }
+    else {
+        print "Done!\n";
+    }
+    print "Encoding $ofname... ";
+    if (
+        system(
+"neroAacEnc @aacencopts -if \"$tempfile\" -of \"$out\" >/dev/null 2>&1"
+        ) != 0
+      )
+    {
+        print "\nFailed to encode $_. Skipped!\n";
+        unlink $tempfile
+          if ( -e $tempfile )
+          or print "Couldn't unlink $tempfile: $!";
+        return;
+    }
+    else {
+        print "Done!\n";
+        print "Tagging $ofname... ";
+        if ( system("neroAacTag \"$out\" @aactagopts >/dev/null 2>&1") != 0 ) {
+            print "\nFailed to tag $_. Skipped!\n";
+            unlink $out
+              if ( -e $out )
+              or print "Couldn't unlink $out: $!";
+            return;
+        }
+        else {
+            print "Done\n";
+        }
+    }
+    unlink $tempfile
+      if ( -e $tempfile )
+      or print "Couldn't unlink $tempfile: $!\n";
+}

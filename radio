@@ -350,19 +350,19 @@ be in hex:
 lastfm_passwd = md5:117a520adbd19eff51100215aa7a7fbf
 
 Options:
-  -v, --verbose     enable verbose info about stations
-  -t, --colour      colorise output (enabled per default, use --no-colour to
-            disable)
-  -p, --pidfile     filename where process id should be stored. Will be 
-            overwritten if it already exists
-  -s, --statefile   filename where state should be kept. Will be overwritten
-            if it already exists
-  -r, --stationsfile    filename where radiostations are kept. Will only be read
-  -l, --logfile     filename where mplayer output are kept (used for now 
-            playing information)
-  -c, --configfile  filename where configuration will be read from
-  -f, --lfmfile     file to write last.fm log to. Defaults to /dev/null
-  -h, -?, --help    show this message
+  -v, --verbose      enable verbose info about stations
+  -t, --colour       colorise output (enabled per default, use --no-colour to
+                     disable)
+  -p, --pidfile      filename where process id should be stored. Will be 
+                     overwritten if it already exists
+  -s, --statefile    filename where state should be kept. Will be overwritten
+                     if it already exists
+  -r, --stationsfile filename where radiostations are kept. Will only be read
+  -l, --logfile      filename where mplayer output are kept (used for now 
+                     playing information)
+  -c, --configfile   filename where configuration will be read from
+  -f, --lfmfile      file to write last.fm log to. Defaults to /dev/null
+  -h, -?, --help     show this message
 
 EOH
     exit($sig);
