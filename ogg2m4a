@@ -36,7 +36,6 @@ sub convert {
     my $oggfile = Music::Tag->new($_, { quiet => 1 }, "OGG");
     return unless ( defined $oggfile );
     $oggfile->get_tag;
-    print Dumper($oggfile);
 
     my $out = $path;
     $out =~ s/\.ogg$/.m4a/i;
