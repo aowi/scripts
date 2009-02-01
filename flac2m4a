@@ -5,6 +5,7 @@
 
 use strict;
 use warnings;
+use encoding "utf8";
 use File::Find;
 use File::Spec;
 
@@ -30,8 +31,8 @@ sub process {
 
 sub convert {
     my $path = shift;
-    unless ( -f $path ) {
-        print $path. " is not a file. Skipped!";
+    unless ( -f "$path" ) {
+        print $path. " is not a file. Skipped!\n";
         return;
     }
 
