@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# vim: set expandtab:tabstop=4:shiftwidth=4
+# vim: et:ts=4:sw=4
 
 # radio 2.0
 # Copyright 2008 Anders Ossowicki
@@ -30,6 +30,8 @@ use YAML qw(LoadFile DumpFile);
 use Digest::MD5;
 use LWP::UserAgent;
 use Data::Dumper;
+
+our $VERSION = 2.01;
 
 my $pidfile      = $ENV{'HOME'} . "/.radio.pid";
 my $statefile    = $ENV{'HOME'} . "/.radio.state";
@@ -82,6 +84,7 @@ if ( -e $configfile ) {
 
 GetOptions(
     'verbose|v!'       => \$v,
+    'version|V'        => sub { version() },
     'colour|t!'        => \$colour,
     'pidfile|p=s'      => \$pidfile,
     'stationsfile|r=s' => \$stationsfile,
@@ -318,6 +321,17 @@ sub colour {
     return colored( $_[0], $_[1] );
 }
 
+sub version {
+    my $prog = basename($0);
+    print <<EOV;
+$prog $VERSION
+
+$prog comes with ABSOLUTELY NO WARRANTY. $prog is free software, and you
+are welcome to redistribute it under the same terms as Perl itself.
+EOV
+    exit 0;    
+}
+
 sub usage {
     my $sig  = shift;
     my $prog = basename($0);
@@ -329,15 +343,15 @@ $prog reads ~/.radiostations (a YAML file), fetches the playlist and execs
 mplayer. To get a list of stations in your config, just type $prog.
 
 The following commands are recognised:
-$prog <tag>     plays the station associated with <tag>
+$prog <tag>         plays the station associated with <tag>
 $prog info <tag>    shows information for <tag>
-$prog stop      stops playback
-$prog start     resume playback (if possible)
+$prog stop          stops playback
+$prog start         resume playback (if possible)
 $prog status        prints status
 $prog random        start playing a random station from your list
 $prog playlist #    show the last # played tracks. Default is 10
-$prog np        prints the currently playing track, if supported
-$prog           prints a list of stations. -v gives more information
+$prog np            prints the currently playing track, if supported
+$prog               prints a list of stations. -v gives more information
 
 If you provide your last.fm credentials in the configfile as 'lastfm_user'
 and 'lastfm_passwd', $prog will attempt to submit tracks if the stream
