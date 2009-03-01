@@ -18,7 +18,7 @@ foreach my $path (@paths) {
 		chomp($crc = `crc32 "$_"`);
 		if (lc($1) eq lc($crc)) {
 			print "[ \e[92mOK\e[00m ] $_";
-			$q ? print "\n" : print ":\t " . qx(/usr/bin/ed2k_hash "$_");
+			$q ? print "\n" : print ":\t " . qx(ed2k_hash "$_");
 		} else {
 			print "[ \e[91m!!\e[00m ] $_\n";
 		}
