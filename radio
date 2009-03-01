@@ -23,15 +23,17 @@
 
 use strict;
 use warnings;
-use File::Basename;
-use Getopt::Long qw(:config bundling);
-use Term::ANSIColor;
-use YAML qw(LoadFile DumpFile);
-use Digest::MD5;
-use LWP::UserAgent;
-use Data::Dumper;
 
-our $VERSION = 2.01;
+use Data::Dumper;
+use Digest::MD5;
+use File::Basename;
+use File::Slurp;
+use Getopt::Long qw(:config bundling);
+use LWP::UserAgent;
+use YAML::XS;
+use Term::ANSIColor;
+
+our $VERSION = 2.02;
 
 my $pidfile      = $ENV{'HOME'} . "/.radio.pid";
 my $statefile    = $ENV{'HOME'} . "/.radio.state";
@@ -652,4 +654,12 @@ sub daemonize {
     open STDERR, '>', '/dev/null' or die "Can't write to /dev/null: $!";
     exec( "mplayer", "-msglevel", "all=-1:demuxer=4", "-playlist",
         $stations->{ lc($act) }->{path} );
+}
+
+sub LoadFile {
+    return Load(scalar read_file(shift));
+}
+
+sub DumpFile {
+    write_file($_[0], Dump($_[1]));
 }
