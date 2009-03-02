@@ -33,7 +33,7 @@ use LWP::UserAgent;
 use YAML::XS;
 use Term::ANSIColor;
 
-our $VERSION = 2.02;
+our $VERSION = 2.03;
 
 my $pidfile      = $ENV{'HOME'} . "/.radio.pid";
 my $statefile    = $ENV{'HOME'} . "/.radio.state";
@@ -44,6 +44,7 @@ my $lfmfile      = "/dev/null";
 my $lfm          = {};
 my $v;
 my $colour = 1;
+my $scrobble = 1;
 
 if ( -e $configfile ) {
     open( my $fh, "<", $configfile ) or die "Can't open config file: $!";
@@ -93,6 +94,7 @@ GetOptions(
     'statefile|s=s'    => \$statefile,
     'logfile|l=s'      => \$logfile,
     'configfile|c=s'   => \$configfile,
+    'scrobble!'        => \$scrobble,
     'lfmfile|f=s'      => \$lfmfile,
     'help|h|?'         => sub { usage(0) }
 );
@@ -626,7 +628,8 @@ sub daemonize {
         close($fh) or die "Can't close pidfile: $!";
 
         # Only create last.fm submit fork, if it is actually needed
-        if (   defined( $lfm->{user} )
+        if (   $scrobble
+            && defined( $lfm->{user} )
             && $lfm->{user}
             && defined( $lfm->{passwd} )
             && $lfm->{passwd} )
