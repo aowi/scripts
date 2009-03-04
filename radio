@@ -188,15 +188,13 @@ if ( exists $stations->{ lc($act) } ) {
         # Assume we're already playing, so stop.
         stop();
     }
+
     DumpFile(
         $statefile,
         {
-            tag    => lc($act),
-            name   => $stations->{ lc($act) }->{name},
-            desc   => $stations->{ lc($act) }->{desc},
-            path   => $stations->{ lc($act) }->{path},
-            stream => $stations->{ lc($act) }->{stream},
-            config => {
+            %{$stations->{ lc($act) }},
+            tag     => lc($act),
+            config  => {
                 pidfile         => $pidfile,
                 logfile         => $logfile,
                 lastfm_logfile  => $lfmfile
@@ -247,14 +245,14 @@ sub playlist {
     }
     return ( reverse @playlist )[ 0 .. ( $n - 1 ) ]
         if (@playlist); 
-    return undef;
+    return;
 }
 
 sub np {
     my @pl = playlist(1);
     return $pl[0]->[0]
         if (@pl);
-    return undef;
+    return;
 }
 
 sub info {
@@ -647,7 +645,10 @@ sub daemonize {
         }
         exit;
     }
-
+    my @opts = qw();
+    if (exists $stations->{ lc($act) }->{mplayeropts}) {
+        @opts = split(/\s+/, $stations->{ lc($act) }->{mplayeropts});
+    }
     # <Jediwave>You don't see this</Jediwave>
     open (STDOUT, '|-', 'perl', '-nle', qq#
         BEGIN { open(STDOUT, '>', "$logfile") or die "Can't write to $logfile: \$!"; };
@@ -655,7 +656,7 @@ sub daemonize {
         #)
       or die "Can't open pipe: $!";
     open STDERR, '>', '/dev/null' or die "Can't write to /dev/null: $!";
-    exec( "mplayer", "-msglevel", "all=-1:demuxer=4", "-playlist",
+    exec( "mplayer", @opts, "-msglevel", "all=-1:demuxer=4", "-playlist",
         $stations->{ lc($act) }->{path} );
 }
 
