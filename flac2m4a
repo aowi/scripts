@@ -56,7 +56,7 @@ sub convert {
 
     my $out = $path;
     $out =~ s/\.flac$/.m4a/i;
-    if ( $out eq $_ ) {
+    if ( $out eq $path ) {
         $out .= ".m4a";
     }
 
@@ -80,7 +80,7 @@ sub convert {
     push @aactagopts, qq{-meta:disc="}          , $tags->{discnumber}   . qq{"}
       if ( exists $tags->{discnumber} );
 
-    my $ifname = ( File::Spec->splitpath($_) )[2];
+    my $ifname = ( File::Spec->splitpath($path) )[2];
     my $ofname = ( File::Spec->splitpath($out) )[2];
     print "Decoding $ifname... ";
     if ( system( 'flac', '-s', '-d', $path, '-o', $tempfile ) != 0 ) {
