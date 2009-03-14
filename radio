@@ -652,6 +652,7 @@ sub daemonize {
     # <Jediwave>You don't see this</Jediwave>
     open (STDOUT, '|-', 'perl', '-nle', qq#
         BEGIN { open(STDOUT, '>', "$logfile") or die "Can't write to $logfile: \$!"; };
+        \$| = 1;
         print time, ":", \$_;
         #)
       or die "Can't open pipe: $!";
