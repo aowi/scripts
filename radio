@@ -276,7 +276,7 @@ sub stop {
             open my $fh, "<", $state->{config}->{pidfile} or die "Can't open pidfile: $!";
             while (<$fh>) {    # Om nom nom
                 chomp;
-                if ( -e "/proc/" . $_ ) {
+                if ( kill 0, $_ ) {
                     kill 15, $_ or die "Can't kill radio: $!";
                 }
             }
