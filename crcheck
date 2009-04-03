@@ -11,14 +11,24 @@ foreach my $path (@paths) {
 	} else {
 		@files = split("\n", qx(ls));
 	}
-	
+	my $maxl = 0;
+	foreach (@files) {
+		$maxl = length($_) if (length($_) > $maxl);
+	}
 	foreach (@files) {
 		next unless /^.+[\[\(]([a-fA-F0-9]{8})[\]\)]/;
+		$pad = $maxl - length($_);
 		$_ = $path . "/" . $_ if (-d $path);
 		chomp($crc = `crc32 "$_"`);
 		if (lc($1) eq lc($crc)) {
 			print "[ \e[92mOK\e[00m ] $_";
-			$q ? print "\n" : print ":\t " . qx(ed2k_hash "$_");
+			if ($q) { 
+				print "\n";
+			} else {
+				print ": ";
+				print " " x $pad;
+				print qx(ed2k_hash "$_");
+			}
 		} else {
 			print "[ \e[91m!!\e[00m ] $_\n";
 		}
