@@ -1,0 +1,59 @@
+scripts.git
+===========
+
+This repository containes miscellaneous scrips that I use or have used
+previously.
+
+Patches are welcome.
+
+Unless otherwise noted, assume these scripts are available under the GPL-2
+license.
+
+radio.pl
+========
+http://ossowicki.com/?p=116
+http://ossowicki.com/?p=159
+
+Named 'radio' here. I use this script for playing internet radio stations.
+It reads the list of stations from a YAML document. A standard list of
+stations is supplied in the 'radiostations'-file. Supports scrobbling to
+Last.fm if the stream contains useful track information. Uses mplayer to do
+the actual playback. See the above URLs for more information.
+
+crcheck
+=======
+I got tired of running the crc32-script on every file in my incoming folder,
+comparing the results and creating ed2k hashes afterwards, if they matched.
+crcheck does this, provided the crc32 and ed2k_hash executables are installed
+(take a look at your package mangler… on gentoo it’s dev-perl/Archive-Zip for
+crc32 and net-p2p/ed2k_hash for that one).
+Run as: crcheck [-q] path [path ...]
+-q disables ed2k-hashing (speeds up the process if you don’t need them anyway).
+
+flac2m4a & ogg2m4a
+==================
+These scripts do what they say. Convert flac and ogg-files to the AAC/m4a
+format, preserving tags. I use these for converting music for my ipod.
+They use the nero aac decoder, encoder and tagger available here:
+http://www.nero.com/eng/technologies-aac-codec.html
+
+twit
+====
+A simple command-line twitter-client using perl's Net:Twitter module. I wrote
+this for use with my twitter-widget for the awesome window manager. See
+http://ossowicki.com/?p=171 for details
+
+fix_nipponsei
+=============
+I like the Nipponsei group, and their releases of unlicensed anime OSTs a lot.
+I don’t, however, like their naming scheme. This is a small script, that will
+read the MP3-tags of a file, and rename it to suit them. The new format goes
+something like ‘Artist – Anime [Album] – Track’ and either Artist or Album can
+be overridden from the CLI. Note: I don't actually use this any longer. I prefer
+the Musicbrainz tagger client Picard.
+
+battery
+=======
+A small perlscript that parses the output of
+/proc/acpi/battery/BAT1/{info,state} and calculates remaining battery capacity
+and expected remaining time.

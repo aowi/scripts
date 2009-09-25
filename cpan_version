@@ -1,0 +1,46 @@
+#!/usr/bin/env perl
+# vim: et:ts=4:sw=4
+use strict;
+use warnings;
+use File::Spec;
+$\ = "\n";
+
+eval { require CPANPLUS; };
+if ($@) {
+    chomp($@);
+    print "Failed to load CPANPLUS:\n", $@;
+    exit 1;
+}
+
+my $cpanplus_conf = CPANPLUS::Configure->new(load_configs => 0);
+$cpanplus_conf->set_conf(base => File::Spec->tmpdir() . "/cpanplus-" . getpwuid($<));
+
+my $backend = CPANPLUS::Backend->new($cpanplus_conf);
+
+my $pn = shift;
+unless (defined $pn) {
+    print "No package name specified";
+    exit 1;
+}
+
+# CPANPLUS should just STFU
+open my $oldout, ">&STDOUT" or die "Can't dup STDOUT: $!";
+open my $olderr, ">&STDERR" or die "Can't dup STDERR: $!";
+open STDOUT, '>', '/dev/null' or die "Can't redirect STDOUT: $!";
+open STDERR, '>', '/dev/null' or die "Can't redirect STDERR: $!";
+my $dist = $backend->parse_module(module => $pn);
+open STDERR, '>&', $olderr or die "Can't dup \$olderr: $!";
+open STDOUT, '>&', $oldout or die "Can't dup \$oldout: $!";
+
+unless (defined $dist) {
+    print "Couldn't find a distribution matching '$pn'";
+    exit 1;
+}
+
+my $version = $dist->package_version;
+unless (defined $version) {
+    print "No version information available for '$pn'";
+    exit 1;
+}
+
+print $version;

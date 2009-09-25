@@ -1,0 +1,95 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+my $verbose = 0;
+my $pretend = 0;
+my $artist; # If we don't use artist from id3v2-tag
+my $album;  # If we don't use album from id3v2-tag
+my $num_files = 0;
+
+use Getopt::Long qw(:config bundling);
+GetOptions(
+	'verbose|v!'   => \$verbose,
+	'artist|a=s'   => \$artist,
+	'album|r=s'    => \$album,
+	'dry-run|d!'   => \$pretend,
+	'help|usage|h' => sub { usage(0) }
+) or die(usage(1));
+
+use MP3::Tag;
+use File::Copy;
+use Data::Dumper;
+
+
+sub usage {
+	my $sig = shift;
+	print <<EOUSAGE;
+fix_nipponsei.pl - Fix mp3-files from Nipponsei
+This script fixes filenames of mp3-files from Nipponsei. It takes a number of 
+arguments, and for each arg, renames the file to <artist> - <album> - <track>.
+
+  -a, --artist <string>		set a default artist to use, instead of id3-tag
+  -r, --album <string>		set a default album to use, instead of id3-tag
+  -d, --dry-run			pretend, don't actually rename any files. 
+  				--dry-run enables --verbose
+  -v, --verbose			show file moves and extra information
+  -h, --help, --usage		display this message
+
+fix_nipponsei.pl was written by Anders Ossowicki (desu\@fys.ku.dk) and is 
+released into the public domain.
+
+EOUSAGE
+	exit($sig);
+}
+
+sub fix_mp3 {
+	return "Error - no file supplied" if (!$_[0]);
+	my $file = shift;
+	my $mp3 = MP3::Tag->new($file);
+	$mp3->get_tags;
+
+	if (exists $mp3->{ID3v2}) {
+#		print "$file: ID3v2-tags found - using these...\n" if ($verbose);
+		my %newloc;
+		$newloc{track} = ucfirst($mp3->{ID3v2}->title);
+		if ($album) {
+			$newloc{album} = $album
+		} else { 
+			$newloc{album} = ucfirst($mp3->{ID3v2}->album);
+		}
+		if ($artist) {
+			$newloc{artist} = $artist
+		} else {
+			$newloc{artist} = ucfirst($mp3->{ID3v2}->artist);
+		}
+		$newloc{artist} =~ s/\// /g;
+		$newloc{album} =~ s/\// /g;
+		$newloc{track} =~ s/\// /g;
+
+		#print Dumper(%newloc);
+		my $newfile = $newloc{artist} . " - " . $newloc{album} . " - " . $newloc{track} . ".mp3";
+		unless ($pretend) {
+			move($file,$newfile) or die("$file->$newfile: $!");
+		}
+		$num_files++;
+		return "Success - $file moved to $newfile"	
+	}
+	return "Couldn't find ID3v2-tags for $file";
+}
+
+$verbose = 1 if $pretend;
+foreach(@ARGV) {
+	unless (-r) {
+		print "Error - couldn't read $_";
+		($!) ? print ": $!\n" : print "\n";
+		next;
+	}
+	my $rv = fix_mp3($_);
+	print "[DRY-RUN] " if ($pretend);
+	print $rv."\n" if ($verbose);
+}
+print ">>$num_files\nFIXED\n" if ($verbose);
+exit;
+
+
