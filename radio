@@ -2,7 +2,7 @@
 # vim: et:ts=4:sw=4
 
 # radio 2.0
-# Copyright 2008 Anders Ossowicki
+# Copyright 2008-2009 Anders Ossowicki
 # Distributed under the terms of the Artistic License 2.0
 # For details see http://www.perlfoundation.org/artistic_license_2_0
 # In short, you are free to copy, modify and redistribute this script
@@ -12,8 +12,8 @@
 # * YAML
 # * Digest::MD5
 # * LWP::UserAgent
-# Tested with perl 5.8.8 and mplayer SVN revision 27120
-# mplayer is copyright 2000-2008 MPlayer Team
+# Tested with perl 5.10.1 and mplayer SVN revision 29532
+# mplayer is copyright 2000-2009 MPlayer Team
 
 # Notes:
 # the script will log mplayer output to $logfile. I have tried to suppress
@@ -158,6 +158,10 @@ elsif ( defined $act && $act eq 'np' ) {
 }
 elsif ( $act eq 'playlist' ) {
     my $num = shift;
+    if ($num !~ /^\d*$/) {
+        print "'". $num . "' not recognised as number.\n" if $v;
+        $num = 10;
+    }
     $num ||= 10;
     my @list = playlist($num);
     if (defined $list[0]) {
