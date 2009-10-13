@@ -57,3 +57,8 @@ battery
 A small perlscript that parses the output of
 /proc/acpi/battery/BAT1/{info,state} and calculates remaining battery capacity
 and expected remaining time.
+
+fortune_rss.cgi
+===============
+A simple cgi-script that prints an rss-feed containing a single fortune-cookie.
+I use this for my random gmail signature.
