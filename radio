@@ -158,6 +158,7 @@ elsif ( defined $act && $act eq 'np' ) {
 }
 elsif ( $act eq 'playlist' ) {
     my $num = shift;
+    $num //= 10;
     if ($num !~ /^\d*$/) {
         print "'". $num . "' not recognised as number.\n" if $v;
         $num = 10;
