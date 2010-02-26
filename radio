@@ -33,7 +33,7 @@ use LWP::UserAgent;
 use YAML::XS;
 use Term::ANSIColor;
 
-our $VERSION = 2.04;
+our $VERSION = 2.05;
 
 my $pidfile      = $ENV{'HOME'} . "/.radio.pid";
 my $statefile    = $ENV{'HOME'} . "/.radio.state";
