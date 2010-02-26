@@ -97,7 +97,7 @@ GetOptions(
     'scrobble!'        => \$scrobble,
     'lfmfile|f=s'      => \$lfmfile,
     'help|h|?'         => sub { usage(0) }
-);
+) or usage(1);
 
 my $stations = LoadFile($stationsfile);
 
