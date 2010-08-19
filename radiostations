@@ -70,6 +70,11 @@ doomed:
   name: "[SomaFM] Doomed"
   path: http://somafm.com/doomed.pls
   stream: 128 Kbit/s MP3
+u80s:
+  desc: Early 80s UK Synthpop and a bit of New Wave.
+  name: "[SomaFM] Underground 80s"
+  path: http://somafm.com/u80s.pls
+  stream: 128 Kbit/s MP3
 
 # Digitally-Imported
 diexposure:
