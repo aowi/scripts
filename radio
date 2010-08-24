@@ -28,6 +28,7 @@ use Data::Dumper;
 use Digest::MD5;
 use File::Basename;
 use File::Slurp;
+use File::Spec;
 use Getopt::Long qw(:config bundling);
 use LWP::UserAgent;
 use YAML::XS;
@@ -93,11 +94,17 @@ GetOptions(
     'stationsfile|r=s' => \$stationsfile,
     'statefile|s=s'    => \$statefile,
     'logfile|l=s'      => \$logfile,
-    'configfile|c=s'   => \$configfile,
     'scrobble!'        => \$scrobble,
     'lfmfile|f=s'      => \$lfmfile,
     'help|h|?'         => sub { usage(0) }
 ) or usage(1);
+
+# We chdir to / during daemonisation so resolve all relative paths now
+$pidfile      = File::Spec->rel2abs($pidfile);
+$stationsfile = File::Spec->rel2abs($stationsfile);
+$statefile    = File::Spec->rel2abs($statefile);
+$logfile      = File::Spec->rel2abs($logfile);
+$lfmfile      = File::Spec->rel2abs($lfmfile);
 
 my $stations = LoadFile($stationsfile);
 
@@ -381,7 +388,6 @@ Options:
   -r, --stationsfile filename where radiostations are kept. Will only be read
   -l, --logfile      filename where mplayer output are kept (used for now 
                      playing information)
-  -c, --configfile   filename where configuration will be read from
   -f, --lfmfile      file to write last.fm log to. Defaults to /dev/null
   -h, -?, --help     show this message
 
