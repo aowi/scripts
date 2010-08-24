@@ -23,6 +23,7 @@
 
 use strict;
 use warnings;
+use 5.010;
 
 use Data::Dumper;
 use Digest::MD5;
@@ -34,7 +35,7 @@ use LWP::UserAgent;
 use YAML::XS;
 use Term::ANSIColor;
 
-our $VERSION = 2.05;
+our $VERSION = 2.10;
 
 my $pidfile      = $ENV{'HOME'} . "/.radio.pid";
 my $statefile    = $ENV{'HOME'} . "/.radio.state";
@@ -114,6 +115,26 @@ unless (defined $act) {
     listStations();
     exit;
 }
+
+my @commands = qw(np stop status info random playlist start);
+unless ( grep { /^\Q$act\E$/ } @commands  or exists $stations->{ lc($act) } ) {
+    # See if we can disambiguate the command
+    my @results = grep { /^\Q$act\E/ } @commands;
+    given ( scalar @results ) {
+        when (0) {
+            say "$act: no such command or station.";
+        }
+        when (1) {
+            # We have an exact match!
+            $act = $results[0];
+        }
+        default {
+            say "Ambiguous command '$act': @results";
+            exit 1;
+        }
+    }
+}
+    
 
 if ( $act eq 'stop' ) {
     stop() ? exit 0 : exit 1;
@@ -217,7 +238,6 @@ if ( exists $stations->{ lc($act) } ) {
 }
 
 # If all else fails, print a list of stations
-print $act, ": No such station\n";
 listStations();
 
 sub playlist {
