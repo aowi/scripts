@@ -35,7 +35,7 @@ use LWP::UserAgent;
 use YAML::XS;
 use Term::ANSIColor;
 
-our $VERSION = 2.10;
+our $VERSION = 2.11;
 
 my $pidfile      = $ENV{'HOME'} . "/.radio.pid";
 my $statefile    = $ENV{'HOME'} . "/.radio.state";
@@ -242,6 +242,10 @@ listStations();
 
 sub playlist {
     my $n = shift;
+    unless ( -e $logfile ) {
+        say "No station playing";
+        exit 1;
+    }
     open my $log, "<", $logfile or die $!;
     my $time;
     my @playlist;
